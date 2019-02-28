@@ -102,10 +102,7 @@ def operationFunction():
 	
 	#7.2
 	DD=teamTopListByCVSS(myData,"Team O",7.2)
-	for i in DD: 
-		print i+","
-	print len(DD)
-	DD=removeDuplicates(DD)
+	print DD
 	print len(DD)
 	#----------------------------------------------------------------------------
 	#print myData
