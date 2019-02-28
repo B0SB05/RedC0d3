@@ -1,0 +1,116 @@
+'''
+@Auther: Muhammed M.Bassem
+@email: muhammed.m.bassem@gmail.com
+@Mobile: +201069650275
+'''
+import json 
+
+'''
+@https://en.wikipedia.org/wiki/Common_Vulnerability_Scoring_System
+{
+ u'service_protocol': u'tcp', 
+ u'cvss_vector': u'(AV:N/AC:L/Au:N/C:N/I:N/A:P)', 
+ u'severity': u'high', 
+ u'service_port': u'443', 
+ u'team': u'Team O', 
+ u'ip': u'10.117.209.28', 
+ u'vulnage': u'468', 
+ u'signature': u'PHP Vulnerability: CVE-2011-3267', 
+ u'cvss': u'5'
+ }
+'''
+
+myData=[]
+teamNames={}
+severityList=['critical','high','medium','low']
+
+# print how many teams 
+def howManyTeam():
+	return len(teamNames)
+# print how many teams 
+def howManyVulns():
+	return len(myData)
+def removeDuplicates(dataSet):
+	return list(dict.fromkeys(dataSet))
+
+def printMatrix(title,matrix):
+	wingLine="*"*(5+len(title)/2)
+	freeLine="*"*(len(wingLine)*2+len(title))
+	footerLine="-"*len(freeLine)
+	print freeLine
+	print wingLine+title+wingLine
+	print freeLine
+	for raw in matrix:
+		print raw[0:]
+	print footerLine
+
+# How many vuln with severity X for Team Y 
+def teamSeverityCounter(dataSet,teamName,severityValue):
+	return (map(lambda x: x['team']==teamName and x['severity']==severityValue,dataSet )).count(True)
+
+def teamTopListBySeverity(dataSet,teamName,severityValue):
+	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if x['severity']==severityValue])
+
+# Get ALL vulnSignature whose vulnAge <= number 
+def teamTopListByCVSS(dataSet,teamName,cValue):
+	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if float(x['cvss'])==cValue])
+
+# Get ALL vulnSignature whose vulnAge <= number 
+def teamTopListByVulnAge(dataSet,teamName,vulnValue):
+	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if int(x['vulnage'])<=vulnValue])
+
+# Print Table with header 
+def printSeverityStatisticsByTeam(dataSet):
+	#Header: Team name Critical High Medium Low
+	matrix=[["Team Name","Critical","High","Medium","Low","Total"]]
+	for key in teamNames:
+		raw=returnTeamSeverityStatistics(dataSet,key)
+		raw.append(teamNames[key])
+		matrix.append(raw)
+	return matrix
+# Return Value without header 
+def returnTeamSeverityStatistics(dataSet,teamName):
+	#Header: Team name Critical High Medium Low
+	mytable=[]
+	mytable.append(teamName)
+	for svalue in severityList:
+		mytable.append(teamSeverityCounter(dataSet,teamName,svalue))
+	return mytable
+
+# Statistics by Team TopList (Group by team and sort by severity Level )
+# 
+def readFile(filename):
+	with open(filename) as file:
+		data=json.load(file)
+		for raw in data:
+			myData.append(raw)
+			# Calculate Total Vulns for each team in the file 
+			if not(teamNames.has_key(raw['team'])):
+				teamNames[raw['team']]=1
+			else:	
+				teamNames[raw['team']]+=1
+
+def operationFunction():
+	readFile("vulnssample.json")
+	#printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
+	#for key in teamNames:
+	#----------------------------------------------------------------------------
+	#print teamTopListBySeverity(myData,"Team O",severityList[0])
+	
+	#468
+	#print teamTopListByVulnAge(myData,"Team O",12)
+	
+	#7.2
+	DD=teamTopListByCVSS(myData,"Team O",7.2)
+	for i in DD: 
+		print i+","
+	print len(DD)
+	DD=removeDuplicates(DD)
+	print len(DD)
+	#----------------------------------------------------------------------------
+	#print myData
+#print teamSeverity(myData,'Team O','critical')
+# > sum values 
+#print sum(teamNames.itervalues())
+#print len(myData)
+operationFunction()
