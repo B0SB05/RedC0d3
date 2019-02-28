@@ -51,7 +51,7 @@ def teamSeverityCounter(dataSet,teamName,severityValue):
 def teamTopListBySeverity(dataSet,teamName,severityValue):
 	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if x['severity']==severityValue])
 
-# Get ALL vulnSignature whose vulnAge <= number 
+# Get ALL vulnSignature whose CVSS <= number 
 def teamTopListByCVSS(dataSet,teamName,cValue):
 	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if float(x['cvss'])==cValue])
 
