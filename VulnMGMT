@@ -20,6 +20,11 @@ import json
  }
 '''
 
+
+## Example for CVSS with no local access is 4.6 using vulnerability search 
+## Example for Vulnage with no local access is 12 using vulnerability search 
+
+
 myData=[]
 teamNames={}
 severityList=['critical','high','medium','low']
@@ -77,7 +82,24 @@ def printTopListBySeverityForTeam():
         risk=(list(severityList)[inputme]) 
         print "-------------------------------------------------------------------------------------------------------------------------"
         print ""
-        print teamTopListBySeverity(myData,teamName,risk)
+        resultSet=teamTopListBySeverity(myData,teamName,risk)
+        print resultSet
+        print "[*] Result Set Size: " + str(len(resultSet))
+        print "[-] PS: Removed Duplicated Vulnerabilities ... "
+        print "-------------------------------------------------------------------------------------------------------------------------"
+        print ""
+
+
+def printTopListBySeverityForVuln():
+   		     
+        printSeverityList()    
+        inputme=inputSeverityName()
+        risk=(list(severityList)[inputme]) 
+        print "-------------------------------------------------------------------------------------------------------------------------"
+        print ""
+        resultSet=vulnTopListBySeverity(myData,risk)
+        print resultSet
+        print "[*] Result Set Size: " + str(len(resultSet))
         print "[-] PS: Removed Duplicated Vulnerabilities ... "
         print "-------------------------------------------------------------------------------------------------------------------------"
         print ""
@@ -96,7 +118,27 @@ def printTopListByCSVVForTeam():
 
        	print "-------------------------------------------------------------------------------------------------------------------------"
        	print ""
-       	print teamTopListByCVSS(myData,teamName,csvvValue)
+       	resultSet=teamTopListByCVSS(myData,teamName,csvvValue)
+       	print resultSet
+        print "[*] Result Set Size: " + str(len(resultSet))
+       	print "[-] PS: Removed Duplicated Vulnerabilities ... "
+       	print "-------------------------------------------------------------------------------------------------------------------------"
+       	print ""
+
+
+def printTopListByCSVVForVuln():
+        csvvValue=-1
+        while True:
+       		csvvValue=float(raw_input("Enter CSVV Value: "))
+       		if csvvValue >=0.0 and csvvValue <=10.0: 
+       			break
+       	print csvvValue
+
+       	print "-------------------------------------------------------------------------------------------------------------------------"
+       	print ""
+       	resultSet=vulnTopListByCVSS(myData,csvvValue)
+       	print resultSet
+        print "[*] Result Set Size: " + str(len(resultSet))
        	print "[-] PS: Removed Duplicated Vulnerabilities ... "
        	print "-------------------------------------------------------------------------------------------------------------------------"
        	print ""
@@ -111,11 +153,26 @@ def printTopListByVulnAgeForTeam():
        		
 	print "-------------------------------------------------------------------------------------------------------------------------"
 	print ""
-	print teamTopListByVulnAge(myData,teamName,vulnAge)
+	resultSet=teamTopListByVulnAge(myData,teamName,vulnAge)
+	print resultSet
+	print "[*] Result Set Size: " + str(len(resultSet))
 	print "[-] PS: Removed Duplicated Vulnerabilities ... "
 	print "[-] Listing all Signature whose vulnAge >= "+str(vulnAge)
 	print "-------------------------------------------------------------------------------------------------------------------------"
 	print ""
+
+
+def printTopListByVulnAgeForVuln():
+    vulnAge=int(raw_input("Enter VulnAge Value: "))
+    print "-------------------------------------------------------------------------------------------------------------------------"
+    print ""
+    resultSet=vulnTopListByVulnAge(myData,vulnAge)
+    print resultSet
+    print "[*] Result Set Size: " + str(len(resultSet))
+    print "[-] PS: Removed Duplicated Vulnerabilities ... "
+    print "[-] Listing all Signature whose vulnAge >= "+str(vulnAge)
+    print "-------------------------------------------------------------------------------------------------------------------------"
+    print ""
 
 def printTeamMatrix():
 	printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
@@ -141,7 +198,7 @@ def teamControl():
 	
         message16="[6] Print the Team Statistics Table"
         print message16
-	#printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
+
         argument=raw_input(">>>.. ")
         switcher={
                 1:printTeamList,
@@ -155,8 +212,33 @@ def teamControl():
 
 
 def vulnControl():
-	print "Vuln"
-	mainControl()
+	
+    print "*** Vuln Control ***"
+    #message21="[1] List Teams Names:"
+    #print message21
+
+    message22="[1] Print TopList by severity: "
+    print message22
+
+    message23="[2] Print TopList by CVSS: "
+    print message23
+
+    message24="[3] Print TopList by Vulnage: "
+    print message24
+
+    argument=raw_input(">>>.. ")
+    switcher={
+
+    
+    1:printTopListBySeverityForVuln,  ### Done ### 
+    2:printTopListByCSVVForVuln, ### Done ### 
+    3:printTopListByVulnAgeForVuln, ### Done ###
+    }
+
+    func = switcher.get(int(argument), lambda: "Invalid Option")
+    func()
+    mainControl()
+
 def mainControl():
       	controlHeader="Please Select one of top options by pressing numberical value: "
       	message1="[1]Categorized by Team"
@@ -197,13 +279,38 @@ def teamSeverityCounter(dataSet,teamName,severityValue):
 def teamTopListBySeverity(dataSet,teamName,severityValue):
 	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if x['severity']==severityValue])
 
+def addVuln(zlist, banned="L", condition=False):
+	dict={}
+	for i in zlist['cvss_vector'].replace("(","").replace(")","").split("/"):
+		i = i.split(":")
+		dict[i[0]]= i[1]
+	'''
+	AV
+	Local (L)	A vulnerability exploitable with only local access requires the attacker to have either physical access to the vulnerable system or a local (shell) account. Examples of locally exploitable vulnerabilities are peripheral attacks such as Firewire/USB DMA attacks, and local privilege escalations (e.g., sudo).
+	'''
+	if dict['AV'] == banned:
+		return condition
+	return not condition
+
+
+def vulnTopListBySeverity(dataSet,severityValue):
+	return removeDuplicates([x['signature'] for x in dataSet if addVuln(x) if x['severity']==severityValue])
+
 # Get ALL vulnSignature whose CVSS <= number 
 def teamTopListByCVSS(dataSet,teamName,cValue):
 	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if float(x['cvss'])==cValue])
 
+def vulnTopListByCVSS(dataSet,cValue):
+	return removeDuplicates([x['signature'] for x in dataSet if addVuln(x) if float(x['cvss'])==cValue])
+
 # Get ALL vulnSignature whose vulnAge >= number 
 def teamTopListByVulnAge(dataSet,teamName,vulnValue):
 	return removeDuplicates([x['signature'] for x in dataSet if x['team']==teamName if int(x['vulnage'])>=vulnValue])
+
+def vulnTopListByVulnAge(dataSet,vulnValue):
+	return removeDuplicates([x['signature'] for x in dataSet if addVuln(x) if int(x['vulnage'])>=vulnValue])
+
+
 
 # Print Table with header 
 def printSeverityStatisticsByTeam(dataSet):
@@ -239,24 +346,11 @@ def readFile(filename):
 
 def operationFunction():
 	filePath=raw_input("Please Enter Full Physical Path for the file: ")
-	readFile("vulnssample.json")#filePath)
+	readFile(filePath)
 	print "Finished reading .... "
 	mainControl()
-	#printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
-	#for key in teamNames:
-	#----------------------------------------------------------------------------
-	#print teamTopListBySeverity(myData,"Team O",severityList[0])
-		#468
-	#print teamTopListByVulnAge(myData,"Team O",12)
-	
-	#7.2
-	#DD=teamTopListByCVSS(myData,"Team O",7.2)
-	#print DD
-	#print len(DD)
-	#----------------------------------------------------------------------------
-	#print myData
-#print teamSeverity(myData,'Team O','critical')
-# > sum values 
-#print sum(teamNames.itervalues())
-#print len(myData)
+
+
 operationFunction()
+
+
