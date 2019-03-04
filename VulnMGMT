@@ -24,6 +24,152 @@ myData=[]
 teamNames={}
 severityList=['critical','high','medium','low']
 
+def severityIsExist(severityName):
+	severityName= severityName.lower().lstrip().rstrip()
+	if severityName in severityList:
+		return True
+	return False
+
+def teamIsExist(teamName):
+	teamName= teamName.lower().lstrip().rstrip()
+	if teamName in teamNames:
+		return True
+	return False
+
+def printTeamList():
+	for key in range(len(list(teamNames))):
+		print "["+str(key)+"] "+ list(teamNames)[key]
+
+def printSeverityList():
+	for key in range(len(list(severityList))):
+		print "["+str(key)+"] "+ list(severityList)[key]
+
+def inputTeamName():
+	teamName=-1
+	while not (int(teamName) in range(len(list(teamNames)))):
+		teamName=input(">>> Which Team:")
+	return teamName
+
+def inputSeverityName():
+	risk=-1
+	while not (int(risk) in range(len(list(severityList)))):
+		risk=input(">>> Which Risk:")
+	return risk
+
+
+def printVulnCounterByTeam():
+	printTeamList()
+	inputme=inputTeamName()
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	print ""
+	print "[+] Total Vulnerabilities : "+str(teamNames[str(list(teamNames)[inputme])]) + " by Team: "+ str(list(teamNames)[inputme])
+	print "[-] PS: Number vulnerabilities may be duplicated because of existance on different machines .... "
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	print ""
+
+def printTopListBySeverityForTeam():
+        printTeamList()
+        inputme=inputTeamName()
+        teamName=str(list(teamNames)[inputme])
+   		     
+        printSeverityList()    
+        inputme=inputSeverityName()
+        risk=(list(severityList)[inputme]) 
+        print "-------------------------------------------------------------------------------------------------------------------------"
+        print ""
+        print teamTopListBySeverity(myData,teamName,risk)
+        print "[-] PS: Removed Duplicated Vulnerabilities ... "
+        print "-------------------------------------------------------------------------------------------------------------------------"
+        print ""
+
+
+def printTopListByCSVVForTeam():
+        printTeamList()
+        inputme=inputTeamName()
+        teamName=str(list(teamNames)[inputme])
+        csvvValue=-1
+        while True:
+       		csvvValue=float(raw_input("Enter CSVV Value: "))
+       		if csvvValue >=0.0 and csvvValue <=10.0: 
+       			break
+       	print csvvValue
+
+       	print "-------------------------------------------------------------------------------------------------------------------------"
+       	print ""
+       	print teamTopListByCVSS(myData,teamName,csvvValue)
+       	print "[-] PS: Removed Duplicated Vulnerabilities ... "
+       	print "-------------------------------------------------------------------------------------------------------------------------"
+       	print ""
+
+
+
+def printTopListByVulnAgeForTeam():
+        printTeamList()
+        inputme=inputTeamName()
+        teamName=str(list(teamNames)[inputme])
+        vulnAge=int(raw_input("Enter VulnAge Value: "))
+       		
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	print ""
+	print teamTopListByVulnAge(myData,teamName,vulnAge)
+	print "[-] PS: Removed Duplicated Vulnerabilities ... "
+	print "[-] Listing all Signature whose vulnAge >= "+str(vulnAge)
+	print "-------------------------------------------------------------------------------------------------------------------------"
+	print ""
+
+def printTeamMatrix():
+	printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
+
+def teamControl():
+        print "*** Team Control ***"
+	# Team Options
+
+        message11="[1] List Teams Names:"
+        print message11
+        
+        message12="[2] Print Vulnerabilities Counter by Team: "
+        print message12
+
+        message13="[3] Print TopList by severity: "
+        print message13
+
+        message14="[4] Print TopList by CVSS: "
+        print message14
+
+        message15="[5] Print TopList by Vulnage: "
+        print message15
+	
+        message16="[6] Print the Team Statistics Table"
+        print message16
+	#printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
+        argument=raw_input(">>>.. ")
+        switcher={
+                1:printTeamList,
+                2:printVulnCounterByTeam,
+                3:printTopListBySeverityForTeam, 4:printTopListByCSVVForTeam, 5: printTopListByVulnAgeForTeam,
+                6:printTeamMatrix}
+        func = switcher.get(int(argument), lambda: "Invalid Option")
+        func()
+        mainControl()
+
+
+
+def vulnControl():
+	print "Vuln"
+	mainControl()
+def mainControl():
+      	controlHeader="Please Select one of top options by pressing numberical value: "
+      	message1="[1]Categorized by Team"
+      	message2="[2]Categorized by Vulnerability"
+      	print "*** Main Control ***"
+      	print controlHeader
+      	print message1
+      	print message2
+      	argument=raw_input(">>>.. ")
+      	switcher={1: teamControl, 2:vulnControl}
+      	func0 = switcher.get(int(argument), lambda: "Invalid Option")
+      	func0()
+ 
 # print how many teams 
 def howManyTeam():
 	return len(teamNames)
@@ -43,7 +189,7 @@ def printMatrix(title,matrix):
 	for raw in matrix:
 		print raw[0:]
 	print footerLine
-
+	mainControl()
 # How many vuln with severity X for Team Y 
 def teamSeverityCounter(dataSet,teamName,severityValue):
 	return (map(lambda x: x['team']==teamName and x['severity']==severityValue,dataSet )).count(True)
@@ -80,6 +226,7 @@ def returnTeamSeverityStatistics(dataSet,teamName):
 # Statistics by Team TopList (Group by team and sort by severity Level )
 # 
 def readFile(filename):
+	print "[-] reading the file ..... "
 	with open(filename) as file:
 		data=json.load(file)
 		for raw in data:
@@ -91,19 +238,21 @@ def readFile(filename):
 				teamNames[raw['team']]+=1
 
 def operationFunction():
-	readFile("vulnssample.json")
+	filePath=raw_input("Please Enter Full Physical Path for the file: ")
+	readFile("vulnssample.json")#filePath)
+	print "Finished reading .... "
+	mainControl()
 	#printMatrix("Team Statistics Tables",printSeverityStatisticsByTeam(myData))
 	#for key in teamNames:
 	#----------------------------------------------------------------------------
 	#print teamTopListBySeverity(myData,"Team O",severityList[0])
-	
-	#468
+		#468
 	#print teamTopListByVulnAge(myData,"Team O",12)
 	
 	#7.2
-	DD=teamTopListByCVSS(myData,"Team O",7.2)
-	print DD
-	print len(DD)
+	#DD=teamTopListByCVSS(myData,"Team O",7.2)
+	#print DD
+	#print len(DD)
 	#----------------------------------------------------------------------------
 	#print myData
 #print teamSeverity(myData,'Team O','critical')
